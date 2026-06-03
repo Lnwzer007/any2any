@@ -737,7 +737,7 @@ export default function Home() {
               letterSpacing: "0.04em",
             }}
           >
-            FORGECONVERT
+            made by ไอ้พี
           </span>
           <span
             style={{
@@ -745,7 +745,7 @@ export default function Home() {
               color: "oklch(0.38 0.012 255)",
             }}
           >
-            100% client-side — zero server uploads
+            สร้างขึ้นเพื่อการศึกษา
           </span>
         </footer>
 
