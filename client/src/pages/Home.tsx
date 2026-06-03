@@ -364,7 +364,7 @@ export default function Home() {
                 lineHeight: 1,
               }}
             >
-              Forge<span style={{ color: "oklch(0.52 0.22 260)" }}>Convert</span>
+              แปลง<span style={{ color: "oklch(0.52 0.22 260)" }}>ไฟล์</span>
             </h1>
           </div>
           <p
