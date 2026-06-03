@@ -375,7 +375,7 @@ export default function Home() {
               letterSpacing: "0.01em",
             }}
           >
-            Client-side file conversion — files never leave your device.
+            ของฟรีอย่าบ่นเยอะ
           </p>
           <div
             style={{
