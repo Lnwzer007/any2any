@@ -4,13 +4,7 @@
  * - Hard rectangular edges, steel-seam borders, electric blue accent
  * - Monospace metadata, corner-bracket drop zone
  * - All conversion runs 100% client-side
- *
- * Cross-platform guards applied:
- * - Mobile Canvas Memory Guard (12 MP cap) — in converter.ts
- * - Touch targets ≥ 48px on all interactive controls
- * - Object URL revocation on reset/re-convert (memory leak prevention)
- * - -webkit-tap-highlight-color: transparent — in index.css
- * - Responsive routing bar: horizontal → vertical at <500px
+ * - Loading animation with dual-ring spinner
  */
 
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -87,6 +81,118 @@ function IconFile() {
       <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
       <polyline points="14 2 14 8 20 8" />
     </svg>
+  );
+}
+
+// ─── Loading Overlay Component ────────────────────────────────────────────────
+function LoadingOverlay({ isVisible }: { isVisible: boolean }) {
+  if (!isVisible) return null;
+
+  return (
+    <div
+      style={{
+        position: "fixed",
+        inset: 0,
+        background: "oklch(0.09 0.012 255 / 0.85)",
+        backdropFilter: "blur(2px)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        zIndex: 9999,
+        animation: "fadeIn 200ms ease-out",
+      }}
+      aria-label="Converting file"
+      role="status"
+    >
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          gap: "1.5rem",
+        }}
+      >
+        {/* Animated dual-ring spinner */}
+        <div
+          style={{
+            position: "relative",
+            width: 60,
+            height: 60,
+          }}
+        >
+          {/* Outer rotating ring (blue) */}
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              border: "3px solid oklch(0.52 0.22 260 / 0.2)",
+              borderTopColor: "oklch(0.52 0.22 260)",
+              borderRadius: "50%",
+              animation: "spin 1s linear infinite",
+            }}
+          />
+          {/* Inner rotating ring (green, opposite) */}
+          <div
+            style={{
+              position: "absolute",
+              inset: "8px",
+              border: "2px solid oklch(0.50 0.16 162 / 0.2)",
+              borderBottomColor: "oklch(0.50 0.16 162)",
+              borderRadius: "50%",
+              animation: "spin 1.5s linear infinite reverse",
+            }}
+          />
+          {/* Center dot */}
+          <div
+            style={{
+              position: "absolute",
+              top: "50%",
+              left: "50%",
+              transform: "translate(-50%, -50%)",
+              width: 8,
+              height: 8,
+              background: "oklch(0.52 0.22 260)",
+              borderRadius: "50%",
+            }}
+          />
+        </div>
+
+        {/* Loading text */}
+        <div style={{ textAlign: "center" }}>
+          <p
+            style={{
+              margin: "0 0 0.5rem",
+              fontSize: "1rem",
+              fontWeight: 600,
+              color: "oklch(0.88 0.008 255)",
+              letterSpacing: "0.02em",
+            }}
+          >
+            Converting...
+          </p>
+          <p
+            style={{
+              margin: 0,
+              fontSize: "0.8125rem",
+              color: "oklch(0.55 0.012 255)",
+              letterSpacing: "0.01em",
+            }}
+          >
+            Processing your file
+          </p>
+        </div>
+      </div>
+
+      <style>{`
+        @keyframes spin {
+          to { transform: rotate(360deg); }
+        }
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+      `}</style>
+    </div>
   );
 }
 
@@ -214,7 +320,6 @@ export default function Home() {
     a.href     = result.objectUrl;
     a.download = result.filename;
     a.click();
-    // Revoke after a short delay to allow the browser to initiate the download
     setTimeout(() => {
       URL.revokeObjectURL(result.objectUrl);
       setResult((prev) => prev ? { ...prev, objectUrl: "" } : null);
@@ -234,6 +339,9 @@ export default function Home() {
         paddingBottom: "3rem",
       }}
     >
+      {/* Loading Overlay */}
+      <LoadingOverlay isVisible={isConverting} />
+
       <div className="container" style={{ width: "100%", maxWidth: 640 }}>
 
         {/* ── Header ──────────────────────────────────────────────────────── */}
@@ -384,7 +492,6 @@ export default function Home() {
               aria-label={`Drop a ${sourceFormat.toUpperCase()} file here or click to browse`}
               onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") handleDropZoneClick(); }}
             >
-              {/* All 4 corner brackets via ::before/::after on drop-zone and drop-zone-inner */}
               <div className="drop-zone-inner" style={{ pointerEvents: "none" }}>
                 <div
                   style={{
@@ -652,7 +759,6 @@ export default function Home() {
             align-items: stretch !important;
           }
           .routing-bar > div:nth-child(2) {
-            /* Arrow — rotate to point down on mobile */
             transform: rotate(90deg);
             margin-top: 0 !important;
             align-self: center;
