@@ -1,5 +1,7 @@
 # Web App Template (Static Frontend)
 
+# https://any2any-navy.vercel.app
+
 Pure React 19 + Tailwind 4 template with shadcn/ui baked in. **Use this README as the checklist for shipping static experiences.**
 
 > **Note:** This template includes a minimal `shared/` and `server/` directory with placeholder types to support imported templates. These are just compatibility placeholders - web-static remains a true static-only template without API functionality.
