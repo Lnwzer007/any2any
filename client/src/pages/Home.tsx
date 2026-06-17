@@ -1,10 +1,10 @@
-/*
+/**
  * ForgeConvert — Home.tsx
- * Design: Industrial Brutalism
- * - Hard rectangular edges, steel-seam borders, electric blue accent
- * - Monospace metadata, corner-bracket drop zone
- * - All conversion runs 100% client-side
- * - Loading animation with dual-ring spinner
+ * Design: Industrial Brutalism with Mobile-First Responsive UX
+ * - Auto-download after conversion completes
+ * - Optimized for iOS, Android, iPad, and Desktop
+ * - Touch-friendly targets (48px+ buttons)
+ * - Adaptive layout and typography
  */
 
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -84,6 +84,18 @@ function IconFile() {
   );
 }
 
+function IconRefresh() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+      stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+      aria-hidden="true">
+      <polyline points="23 4 23 10 17 10" />
+      <polyline points="1 20 1 14 7 14" />
+      <path d="M3.51 9a9 9 0 0 1 14.85-3.36M20.49 15a9 9 0 0 1-14.85 3.36" />
+    </svg>
+  );
+}
+
 // ─── Loading Overlay Component ────────────────────────────────────────────────
 function LoadingOverlay({ isVisible }: { isVisible: boolean }) {
   if (!isVisible) return null;
@@ -99,271 +111,257 @@ function LoadingOverlay({ isVisible }: { isVisible: boolean }) {
         alignItems: "center",
         justifyContent: "center",
         zIndex: 9999,
-        animation: "fadeIn 200ms ease-out",
       }}
-      aria-label="Converting file"
       role="status"
+      aria-live="polite"
+      aria-label="Converting file"
     >
-      <div
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          gap: "1.5rem",
-        }}
-      >
-        {/* Animated dual-ring spinner */}
+      <div style={{ textAlign: "center" }}>
         <div
           style={{
+            width: "60px",
+            height: "60px",
+            margin: "0 auto 24px",
             position: "relative",
-            width: 60,
-            height: 60,
           }}
         >
-          {/* Outer rotating ring (blue) */}
+          {/* Outer ring */}
           <div
             style={{
               position: "absolute",
               inset: 0,
-              border: "3px solid oklch(0.52 0.22 260 / 0.2)",
-              borderTopColor: "oklch(0.52 0.22 260)",
+              border: "3px solid transparent",
+              borderTopColor: "#2563EB",
+              borderRightColor: "#059669",
               borderRadius: "50%",
-              animation: "spin 1s linear infinite",
+              animation: "spin 1.2s linear infinite",
             }}
           />
-          {/* Inner rotating ring (green, opposite) */}
+          {/* Inner dot */}
           <div
             style={{
               position: "absolute",
-              inset: "8px",
-              border: "2px solid oklch(0.50 0.16 162 / 0.2)",
-              borderBottomColor: "oklch(0.50 0.16 162)",
+              inset: "50%",
+              width: "8px",
+              height: "8px",
+              background: "#2563EB",
               borderRadius: "50%",
-              animation: "spin 1.5s linear infinite reverse",
-            }}
-          />
-          {/* Center dot */}
-          <div
-            style={{
-              position: "absolute",
-              top: "50%",
-              left: "50%",
               transform: "translate(-50%, -50%)",
-              width: 8,
-              height: 8,
-              background: "oklch(0.52 0.22 260)",
-              borderRadius: "50%",
             }}
           />
         </div>
-
-        {/* Loading text */}
-        <div style={{ textAlign: "center" }}>
-          <p
-            style={{
-              margin: "0 0 0.5rem",
-              fontSize: "1rem",
-              fontWeight: 600,
-              color: "oklch(0.88 0.008 255)",
-              letterSpacing: "0.02em",
-            }}
-          >
-            Converting...
-          </p>
-          <p
-            style={{
-              margin: 0,
-              fontSize: "0.8125rem",
-              color: "oklch(0.55 0.012 255)",
-              letterSpacing: "0.01em",
-            }}
-          >
-            Processing your file
-          </p>
-        </div>
+        <p style={{ color: "#E5E7EB", fontSize: "14px", margin: 0 }}>
+          Converting... Processing your file
+        </p>
       </div>
-
       <style>{`
         @keyframes spin {
           to { transform: rotate(360deg); }
-        }
-        @keyframes fadeIn {
-          from { opacity: 0; }
-          to { opacity: 1; }
         }
       `}</style>
     </div>
   );
 }
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-function formatBytes(bytes: number): string {
-  if (bytes < 1024)       return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-  return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
+// ─── Success Toast Component ──────────────────────────────────────────────────
+function SuccessToast({ message, onClose }: { message: string; onClose: () => void }) {
+  useEffect(() => {
+    const timer = setTimeout(onClose, 3000);
+    return () => clearTimeout(timer);
+  }, [onClose]);
+
+  return (
+    <div
+      style={{
+        position: "fixed",
+        bottom: "20px",
+        left: "20px",
+        right: "20px",
+        maxWidth: "400px",
+        background: "#059669",
+        color: "#F0FDF4",
+        padding: "16px 20px",
+        borderRadius: "8px",
+        display: "flex",
+        alignItems: "center",
+        gap: "12px",
+        zIndex: 9998,
+        boxShadow: "0 4px 12px rgba(0, 0, 0, 0.3)",
+        animation: "slideUp 0.3s ease-out",
+      }}
+      role="status"
+      aria-live="polite"
+    >
+      <IconSuccess />
+      <span style={{ fontSize: "14px", fontWeight: "500" }}>{message}</span>
+      <style>{`
+        @keyframes slideUp {
+          from {
+            transform: translateY(100%);
+            opacity: 0;
+          }
+          to {
+            transform: translateY(0);
+            opacity: 1;
+          }
+        }
+      `}</style>
+    </div>
+  );
 }
 
-function getExtension(filename: string): string {
-  return filename.split(".").pop()?.toLowerCase() ?? "";
-}
-
-// ─── Component ────────────────────────────────────────────────────────────────
+// ─── Main Home Component ──────────────────────────────────────────────────────
 export default function Home() {
-  const allFormats = Object.keys(CONVERSION_MAP);
-
-  const [sourceFormat, setSourceFormat] = useState<string>("png");
-  const [targetFormat, setTargetFormat] = useState<string>("jpg");
-  const [targetOptions, setTargetOptions] = useState<string[]>(CONVERSION_MAP["png"]);
-
-  const [file, setFile]           = useState<File | null>(null);
-  const [isDragOver, setIsDragOver] = useState(false);
-
+  const [fromFormat, setFromFormat] = useState<string>("png");
+  const [toFormat, setToFormat] = useState<string>("jpg");
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isConverting, setIsConverting] = useState(false);
-  const [result, setResult]             = useState<ConversionResult | null>(null);
-  const [error, setError]               = useState<string | null>(null);
-
+  const [successMessage, setSuccessMessage] = useState<string>("");
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const dropZoneRef = useRef<HTMLDivElement>(null);
 
-  // ── Sync target options when source format changes ──────────────────────
+  // Get available target formats based on source format
+  const availableTargets = CONVERSION_MAP[fromFormat] || [];
+
+  // Update target format if current one becomes unavailable
   useEffect(() => {
-    const options = CONVERSION_MAP[sourceFormat] ?? [];
-    setTargetOptions(options);
-    setTargetFormat(options[0] ?? "");
-  }, [sourceFormat]);
-
-  // ── Sync file input accept attribute ────────────────────────────────────
-  useEffect(() => {
-    if (fileInputRef.current) {
-      fileInputRef.current.accept = ACCEPT_MAP[sourceFormat] ?? "*/*";
+    if (!availableTargets.includes(toFormat)) {
+      setToFormat(availableTargets[0] || "jpg");
     }
-  }, [sourceFormat]);
+  }, [fromFormat, toFormat, availableTargets]);
 
-  // ── Revoke previous Object URL to prevent memory leaks ──────────────────
-  const revokeResult = useCallback(() => {
-    if (result?.objectUrl) {
-      URL.revokeObjectURL(result.objectUrl);
-    }
-  }, [result]);
-
-  // ── Reset all state ──────────────────────────────────────────────────────
-  const handleReset = useCallback(() => {
-    revokeResult();
-    setFile(null);
-    setResult(null);
-    setError(null);
-    setIsConverting(false);
-    if (fileInputRef.current) fileInputRef.current.value = "";
-  }, [revokeResult]);
-
-  // ── File validation ──────────────────────────────────────────────────────
-  const acceptFile = useCallback((incoming: File) => {
-    const ext = getExtension(incoming.name);
-    if (ext !== sourceFormat && !(ext === "jpeg" && sourceFormat === "jpg")) {
-      setError(
-        `Expected a .${sourceFormat.toUpperCase()} file, but received .${ext.toUpperCase()}. ` +
-        `Please change "Convert From" or select the correct file.`
-      );
+  // Handle file selection with validation
+  const handleFileSelect = useCallback((file: File) => {
+    const fileExt = file.name.split(".").pop()?.toLowerCase() || "";
+    const maxSize = 100 * 1024 * 1024; // 100MB
+    
+    if (file.size > maxSize) {
+      setSuccessMessage("File too large. Max size is 100MB.");
       return;
     }
-    revokeResult();
-    setResult(null);
-    setError(null);
-    setFile(incoming);
-  }, [sourceFormat, revokeResult]);
+    
+    if (ACCEPT_MAP[fromFormat]?.includes(fileExt) || ACCEPT_MAP[fromFormat]?.includes(file.type)) {
+      setSelectedFile(file);
+    } else {
+      setSuccessMessage(`Invalid file type. Expected ${FORMAT_LABELS[fromFormat]}.`);
+    }
+  }, [fromFormat]);
 
-  // ── Drag-and-drop handlers ───────────────────────────────────────────────
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragOver(true);
+  // Handle file input change
+  const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files?.[0]) {
+      handleFileSelect(e.target.files[0]);
+    }
   };
 
-  const handleDragLeave = () => setIsDragOver(false);
+  // Handle drag and drop
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (dropZoneRef.current) {
+      dropZoneRef.current.style.borderColor = "#2563EB";
+      dropZoneRef.current.style.background = "oklch(0.15 0.02 255)";
+    }
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    if (dropZoneRef.current) {
+      dropZoneRef.current.style.borderColor = "#2D3748";
+      dropZoneRef.current.style.background = "transparent";
+    }
+  };
 
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
-    setIsDragOver(false);
-    const dropped = e.dataTransfer.files[0];
-    if (dropped) acceptFile(dropped);
+    e.stopPropagation();
+    if (dropZoneRef.current) {
+      dropZoneRef.current.style.borderColor = "#2D3748";
+      dropZoneRef.current.style.background = "transparent";
+    }
+    if (e.dataTransfer.files?.[0]) {
+      handleFileSelect(e.dataTransfer.files[0]);
+    }
   };
 
-  const handleFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const picked = e.target.files?.[0];
-    if (picked) acceptFile(picked);
-  };
-
-  const handleDropZoneClick = () => {
-    if (!file) fileInputRef.current?.click();
-  };
-
-  // ── Conversion ───────────────────────────────────────────────────────────
+  // Handle conversion with auto-download
   const handleConvert = async () => {
-    if (!file || !targetFormat) return;
-    revokeResult();
-    setResult(null);
-    setError(null);
-    setIsConverting(true);
+    if (!selectedFile) return;
 
+    setIsConverting(true);
     try {
-      const output = await convertFile(file, sourceFormat, targetFormat);
-      setResult(output);
-    } catch (err: any) {
-      setError(err?.message ?? "An unexpected error occurred during conversion.");
+      const result = await convertFile(selectedFile, fromFormat, toFormat);
+      
+      // Auto-download the file
+      const link = document.createElement("a");
+      link.href = result.objectUrl;
+      link.download = result.filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      // Cleanup
+      URL.revokeObjectURL(result.objectUrl);
+
+      // Show success message
+      setSuccessMessage(`Downloaded ${result.filename}`);
+      
+      // Reset after a short delay
+      setTimeout(() => {
+        setSelectedFile(null);
+        if (fileInputRef.current) {
+          fileInputRef.current.value = "";
+        }
+      }, 1500);
+    } catch (error) {
+      console.error("Conversion error:", error);
+      setSuccessMessage("Conversion failed. Please try again.");
     } finally {
       setIsConverting(false);
     }
   };
 
-  // ── Download trigger ─────────────────────────────────────────────────────
-  const handleDownload = () => {
-    if (!result) return;
-    const a = document.createElement("a");
-    a.href     = result.objectUrl;
-    a.download = result.filename;
-    a.click();
-    setTimeout(() => {
-      URL.revokeObjectURL(result.objectUrl);
-      setResult((prev) => prev ? { ...prev, objectUrl: "" } : null);
-    }, 2000);
+  // Reset conversion
+  const handleReset = () => {
+    setSelectedFile(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
   };
 
-  // ─────────────────────────────────────────────────────────────────────────
   return (
-    <div
-      style={{
-        minHeight: "100dvh",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "flex-start",
-        paddingTop: "clamp(2rem, 6vh, 4rem)",
-        paddingBottom: "3rem",
-      }}
-    >
-      {/* Loading Overlay */}
+    <div style={{ minHeight: "100vh", background: "#070A13", color: "#E5E7EB", WebkitTapHighlightColor: "transparent" }}>
       <LoadingOverlay isVisible={isConverting} />
+      {successMessage && (
+        <SuccessToast
+          message={successMessage}
+          onClose={() => setSuccessMessage("")}
+        />
+      )}
 
-      <div className="container" style={{ width: "100%", maxWidth: 640 }}>
-
-        {/* ── Header ──────────────────────────────────────────────────────── */}
-        <header style={{ marginBottom: "2.5rem" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "0.625rem", marginBottom: "0.5rem" }}>
-            {/* Forge logo mark */}
-            <svg width="28" height="28" viewBox="0 0 28 28" fill="none" aria-hidden="true">
-              <rect x="1" y="1" width="26" height="26" rx="2" stroke="oklch(0.52 0.22 260)" strokeWidth="1.5" />
-              <path d="M7 20 L14 8 L21 20" stroke="oklch(0.52 0.22 260)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-              <line x1="9.5" y1="15.5" x2="18.5" y2="15.5" stroke="oklch(0.52 0.22 260)" strokeWidth="1.5" strokeLinecap="round" />
-            </svg>
-            <h1
+      {/* Header */}
+      <header
+        style={{
+          padding: "20px 16px",
+          borderBottom: "1px solid #2D3748",
+          background: "oklch(0.09 0.012 255)",
+        }}
+      >
+        <div style={{ maxWidth: "1200px", margin: "0 auto" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "8px" }}>
+            <div
               style={{
-                fontFamily: '"Space Grotesk", sans-serif',
-                fontWeight: 700,
-                fontSize: "clamp(1.4rem, 4vw, 1.75rem)",
-                letterSpacing: "-0.02em",
-                color: "oklch(0.92 0.008 255)",
-                margin: 0,
-                lineHeight: 1,
+                width: "28px",
+                height: "28px",
+                background: "#2563EB",
+                borderRadius: "4px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontSize: "16px",
               }}
             >
+<<<<<<< Updated upstream
               แปลง<span style={{ color: "oklch(0.52 0.22 260)" }}>ไฟล์</span>
             </h1>
           </div>
@@ -376,323 +374,249 @@ export default function Home() {
             }}
           >
             ของฟรีอย่าบ่นเยอะ
+=======
+              🔨
+            </div>
+            <h1 style={{ fontSize: "clamp(18px, 5vw, 24px)", fontWeight: "700", margin: 0 }}>
+              Forge<span style={{ color: "#2563EB" }}>Convert</span>
+            </h1>
+          </div>
+          <p style={{ fontSize: "clamp(12px, 3vw, 13px)", color: "#9CA3AF", margin: 0 }}>
+            Client-side file conversion — files never leave your device.
+>>>>>>> Stashed changes
           </p>
-          <div
-            style={{
-              marginTop: "0.875rem",
-              height: "1px",
-              background: "oklch(0.28 0.014 255)",
-            }}
-          />
-        </header>
+        </div>
+      </header>
 
-        {/* ── Routing Bar ─────────────────────────────────────────────────── */}
-        <section style={{ marginBottom: "1.75rem" }}>
-          <p className="section-label">Conversion Route</p>
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "0.75rem",
-              flexWrap: "wrap",
-            }}
-            className="routing-bar"
-          >
-            {/* Convert From */}
-            <div style={{ flex: "1 1 140px", minWidth: 0 }}>
-              <label
-                htmlFor="from-select"
-                style={{
-                  display: "block",
-                  fontSize: "0.7rem",
-                  fontWeight: 700,
-                  letterSpacing: "0.1em",
-                  textTransform: "uppercase",
-                  color: "oklch(0.50 0.012 255)",
-                  marginBottom: "0.35rem",
-                }}
-              >
-                From
-              </label>
+      {/* Main Content */}
+      <main style={{ maxWidth: "1200px", margin: "0 auto", padding: "clamp(16px, 5vw, 24px)" }}>
+        {/* Conversion Route Section */}
+        <section style={{ marginBottom: "32px" }}>
+          <label style={{ fontSize: "12px", fontWeight: "600", color: "#9CA3AF", textTransform: "uppercase", letterSpacing: "0.5px" }}>
+            Conversion Route
+          </label>
+          
+          <div className="conversion-grid" style={{
+            display: "grid",
+            gridTemplateColumns: "1fr auto 1fr",
+            gap: "12px",
+            alignItems: "center",
+            marginTop: "12px",
+          }}>
+            {/* FROM Format */}
+            <div>
+              <label style={{ fontSize: "12px", color: "#9CA3AF", marginBottom: "6px", display: "block" }}>FROM</label>
               <select
-                id="from-select"
-                className="forge-select"
-                value={sourceFormat}
-                onChange={(e) => {
-                  handleReset();
-                  setSourceFormat(e.target.value);
+                value={fromFormat}
+                onChange={(e) => setFromFormat(e.target.value)}
+                style={{
+                  width: "100%",
+                  padding: "12px",
+                  background: "oklch(0.12 0.015 255)",
+                  border: "1px solid #2D3748",
+                  color: "#E5E7EB",
+                  borderRadius: "4px",
+                  fontSize: "14px",
+                  fontWeight: "500",
+                  cursor: "pointer",
+                  minHeight: "48px",
                 }}
               >
-                {allFormats.map((fmt) => (
-                  <option key={fmt} value={fmt}>
-                    {FORMAT_LABELS[fmt] ?? fmt.toUpperCase()}
-                  </option>
+                {Object.entries(FORMAT_LABELS).map(([key, label]) => (
+                  <option key={key} value={key}>{label}</option>
                 ))}
               </select>
             </div>
 
-            {/* Arrow separator */}
-            <div
-              style={{
-                color: "oklch(0.40 0.014 255)",
-                flexShrink: 0,
-                marginTop: "1.25rem",
-                display: "flex",
-                alignItems: "center",
-              }}
-              aria-hidden="true"
-            >
+            {/* Arrow */}
+            <div className="arrow-container" style={{ display: "flex", justifyContent: "center", paddingTop: "20px" }}>
               <IconArrowRight />
             </div>
 
-            {/* Convert To */}
-            <div style={{ flex: "1 1 140px", minWidth: 0 }}>
-              <label
-                htmlFor="to-select"
+            {/* TO Format */}
+            <div>
+              <label style={{ fontSize: "12px", color: "#9CA3AF", marginBottom: "6px", display: "block" }}>TO</label>
+              <select
+                value={toFormat}
+                onChange={(e) => setToFormat(e.target.value)}
                 style={{
-                  display: "block",
-                  fontSize: "0.7rem",
-                  fontWeight: 700,
-                  letterSpacing: "0.1em",
-                  textTransform: "uppercase",
-                  color: "oklch(0.50 0.012 255)",
-                  marginBottom: "0.35rem",
+                  width: "100%",
+                  padding: "12px",
+                  background: "oklch(0.12 0.015 255)",
+                  border: "1px solid #2D3748",
+                  color: "#E5E7EB",
+                  borderRadius: "4px",
+                  fontSize: "14px",
+                  fontWeight: "500",
+                  cursor: "pointer",
+                  minHeight: "48px",
                 }}
               >
-                To
-              </label>
-              <select
-                id="to-select"
-                className="forge-select"
-                value={targetFormat}
-                onChange={(e) => setTargetFormat(e.target.value)}
-              >
-                {targetOptions.map((fmt) => (
-                  <option key={fmt} value={fmt}>
-                    {FORMAT_LABELS[fmt] ?? fmt.toUpperCase()}
-                  </option>
+                {availableTargets.map((fmt) => (
+                  <option key={fmt} value={fmt}>{FORMAT_LABELS[fmt]}</option>
                 ))}
               </select>
             </div>
           </div>
         </section>
 
-        {/* ── Drop Zone (shown when no file selected) ──────────────────────── */}
-        {!file && (
-          <section style={{ marginBottom: "1.75rem" }}>
-            <p className="section-label">Upload File</p>
-            <div
-              className={`drop-zone${isDragOver ? " drag-over" : ""}`}
-              onClick={handleDropZoneClick}
-              onDragOver={handleDragOver}
-              onDragLeave={handleDragLeave}
-              onDrop={handleDrop}
-              role="button"
-              tabIndex={0}
-              aria-label={`Drop a ${sourceFormat.toUpperCase()} file here or click to browse`}
-              onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") handleDropZoneClick(); }}
-            >
-              <div className="drop-zone-inner" style={{ pointerEvents: "none" }}>
-                <div
-                  style={{
-                    color: isDragOver ? "oklch(0.52 0.22 260)" : "oklch(0.40 0.014 255)",
-                    marginBottom: "1rem",
-                    transition: "color 180ms",
-                    display: "flex",
-                    justifyContent: "center",
-                  }}
-                >
-                  <IconUpload />
-                </div>
-                <p
-                  style={{
-                    margin: "0 0 0.375rem",
-                    fontSize: "0.9375rem",
-                    fontWeight: 600,
-                    color: isDragOver ? "oklch(0.75 0.18 260)" : "oklch(0.75 0.008 255)",
-                    transition: "color 180ms",
-                  }}
-                >
-                  Drop your {sourceFormat.toUpperCase()} file here
+        {/* Upload Section */}
+        <section style={{ marginBottom: "32px" }}>
+          <label style={{ fontSize: "12px", fontWeight: "600", color: "#9CA3AF", textTransform: "uppercase", letterSpacing: "0.5px" }}>
+            Upload File
+          </label>
+
+          <div
+            ref={dropZoneRef}
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+            onClick={() => fileInputRef.current?.click()}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                fileInputRef.current?.click();
+              }
+            }}
+            tabIndex={0}
+            role="button"
+            aria-label="Drop zone for file upload"
+            style={{
+              marginTop: "12px",
+              padding: "32px 20px",
+              border: "2px dashed #2D3748",
+              borderRadius: "4px",
+              background: "transparent",
+              cursor: "pointer",
+              textAlign: "center",
+              transition: "all 0.2s ease",
+              minHeight: "160px",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              outline: "none",
+            }}
+          >
+            {selectedFile ? (
+              <>
+                <IconFile />
+                <p style={{ fontSize: "14px", fontWeight: "500", margin: "12px 0 0 0" }}>
+                  {selectedFile.name}
                 </p>
-                <p
-                  style={{
-                    margin: 0,
-                    fontSize: "0.8125rem",
-                    color: "oklch(0.45 0.012 255)",
-                  }}
-                >
+                <p style={{ fontSize: "12px", color: "#9CA3AF", margin: "4px 0 0 0" }}>
+                  {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
+                </p>
+              </>
+            ) : (
+              <>
+                <IconUpload />
+                <p style={{ fontSize: "14px", fontWeight: "500", margin: "12px 0 0 0" }}>
+                  Drop your {FORMAT_LABELS[fromFormat]} file here
+                </p>
+                <p style={{ fontSize: "12px", color: "#9CA3AF", margin: "4px 0 0 0" }}>
                   or click to browse
                 </p>
-              </div>
-            </div>
-
-            {/* Hidden file input */}
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept={ACCEPT_MAP[sourceFormat] ?? "*/*"}
-              onChange={handleFileInput}
-              style={{ display: "none" }}
-              aria-hidden="true"
-            />
-          </section>
-        )}
-
-        {/* ── Active Workspace (shown when file is selected) ───────────────── */}
-        {file && (
-          <section style={{ marginBottom: "1.75rem" }} className="animate-slide-up">
-            <p className="section-label">Selected File</p>
-            <div className="workspace-card">
-              {/* File icon */}
-              <div style={{ color: "oklch(0.52 0.22 260)", flexShrink: 0 }}>
-                <IconFile />
-              </div>
-
-              {/* File info */}
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <p
-                  style={{
-                    margin: "0 0 0.25rem",
-                    fontSize: "0.875rem",
-                    fontWeight: 600,
-                    color: "oklch(0.88 0.008 255)",
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                    whiteSpace: "nowrap",
-                  }}
-                  title={file.name}
-                >
-                  {file.name}
-                </p>
-                <div style={{ display: "flex", alignItems: "center", gap: "0.625rem", flexWrap: "wrap" }}>
-                  <span
-                    style={{
-                      fontFamily: '"JetBrains Mono", monospace',
-                      fontSize: "0.75rem",
-                      color: "oklch(0.55 0.012 255)",
-                    }}
-                  >
-                    {formatBytes(file.size)}
-                  </span>
-                  <span className="ext-badge">
-                    {getExtension(file.name) || sourceFormat}
-                  </span>
-                </div>
-              </div>
-
-              {/* Reset button */}
-              <button
-                className="forge-btn forge-btn-ghost"
-                onClick={handleReset}
-                aria-label="Remove file and reset"
-                style={{ padding: "0 0.75rem", minHeight: 48, flexShrink: 0 }}
-              >
-                <IconClose />
-              </button>
-            </div>
-          </section>
-        )}
-
-        {/* ── Error Message ────────────────────────────────────────────────── */}
-        {error && (
-          <div
-            className="animate-slide-up"
-            style={{
-              marginBottom: "1.5rem",
-              padding: "0.875rem 1.125rem",
-              background: "oklch(0.58 0.22 27 / 0.1)",
-              border: "1px solid oklch(0.58 0.22 27 / 0.4)",
-              borderRadius: 2,
-              fontSize: "0.875rem",
-              color: "oklch(0.80 0.12 27)",
-              lineHeight: 1.5,
-            }}
-            role="alert"
-          >
-            <strong style={{ fontWeight: 700 }}>Error: </strong>
-            {error}
+              </>
+            )}
           </div>
-        )}
 
-        {/* ── Convert Button ───────────────────────────────────────────────── */}
-        {file && !result && (
-          <section style={{ marginBottom: "1.75rem" }}>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept={ACCEPT_MAP[fromFormat]}
+            onChange={handleFileInputChange}
+            style={{ display: "none" }}
+            aria-label="File input"
+          />
+        </section>
+
+        {/* Action Buttons */}
+        <section style={{ display: "flex", gap: "12px", flexDirection: "column", marginTop: "24px" }}>
+          <button
+            onClick={handleConvert}
+            disabled={!selectedFile || isConverting}
+            title={!selectedFile ? "Select a file first" : "Convert and download the file"}
+            style={{
+              padding: "14px 24px",
+              background: selectedFile && !isConverting ? "#2563EB" : "#1F2937",
+              color: "#FFFFFF",
+              border: "1px solid #2D3748",
+              borderRadius: "4px",
+              fontSize: "14px",
+              fontWeight: "600",
+              cursor: selectedFile && !isConverting ? "pointer" : "not-allowed",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "8px",
+              minHeight: "48px",
+              transition: "all 0.2s ease",
+              opacity: selectedFile && !isConverting ? 1 : 0.5,
+            }}
+            onMouseDown={(e) => {
+              if (selectedFile && !isConverting) {
+                (e.currentTarget as HTMLButtonElement).style.transform = "scale(0.98)";
+              }
+            }}
+            onMouseUp={(e) => {
+              (e.currentTarget as HTMLButtonElement).style.transform = "scale(1)";
+            }}
+          >
+            <IconDownload />
+            Convert & Download
+          </button>
+
+          {selectedFile && (
             <button
-              className="forge-btn forge-btn-primary"
-              onClick={handleConvert}
-              disabled={isConverting || !targetFormat}
-              style={{ width: "100%", fontSize: "1rem", minHeight: 52 }}
-              aria-label={`Convert ${sourceFormat.toUpperCase()} to ${targetFormat.toUpperCase()}`}
+              onClick={handleReset}
+              title="Clear the selected file"
+              style={{
+                padding: "14px 24px",
+                background: "transparent",
+                color: "#9CA3AF",
+                border: "1px solid #2D3748",
+                borderRadius: "4px",
+                fontSize: "14px",
+                fontWeight: "600",
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: "8px",
+                minHeight: "48px",
+                transition: "all 0.2s ease",
+              }}
+              onMouseDown={(e) => {
+                (e.currentTarget as HTMLButtonElement).style.transform = "scale(0.98)";
+              }}
+              onMouseUp={(e) => {
+                (e.currentTarget as HTMLButtonElement).style.transform = "scale(1)";
+              }}
             >
-              {isConverting ? (
-                <>
-                  <span className="forge-spinner" />
-                  Converting…
-                </>
-              ) : (
-                <>
-                  Convert to {(FORMAT_LABELS[targetFormat] ?? targetFormat).toUpperCase()}
-                </>
-              )}
+              <IconRefresh />
+              Reset
             </button>
-          </section>
-        )}
+          )}
+        </section>
+      </main>
 
-        {/* ── Result / Download Panel ──────────────────────────────────────── */}
-        {result && (
-          <section style={{ marginBottom: "1.75rem" }}>
-            <p className="section-label">Conversion Complete</p>
-            <div className="result-panel">
-              {/* Success header */}
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "0.625rem",
-                  marginBottom: "1rem",
-                }}
-              >
-                <div
-                  style={{
-                    width: 36,
-                    height: 36,
-                    borderRadius: 2,
-                    background: "oklch(0.50 0.16 162 / 0.15)",
-                    border: "1px solid oklch(0.50 0.16 162 / 0.5)",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    color: "oklch(0.65 0.18 162)",
-                    flexShrink: 0,
-                  }}
-                >
-                  <IconSuccess />
-                </div>
-                <div>
-                  <p
-                    style={{
-                      margin: 0,
-                      fontSize: "0.9375rem",
-                      fontWeight: 700,
-                      color: "oklch(0.75 0.14 162)",
-                    }}
-                  >
-                    File converted successfully
-                  </p>
-                  <p
-                    style={{
-                      margin: 0,
-                      fontSize: "0.8125rem",
-                      color: "oklch(0.55 0.012 255)",
-                      fontFamily: '"JetBrains Mono", monospace',
-                    }}
-                  >
-                    {result.filename}
-                  </p>
-                </div>
-              </div>
+      {/* Footer */}
+      <footer
+        style={{
+          marginTop: "64px",
+          padding: "clamp(16px, 5vw, 24px)",
+          borderTop: "1px solid #2D3748",
+          background: "oklch(0.09 0.012 255)",
+          textAlign: "center",
+          fontSize: "clamp(11px, 2vw, 12px)",
+          color: "#9CA3AF",
+        }}
+      >
+        <p style={{ margin: 0 }}>FORGECONVERT</p>
+        <p style={{ margin: "4px 0 0 0" }}>100% client-side — zero server uploads</p>
+      </footer>
 
+<<<<<<< Updated upstream
               {/* Download button */}
               <button
                 className="forge-btn forge-btn-primary"
@@ -752,16 +676,17 @@ export default function Home() {
       </div>
 
       {/* ── Responsive Routing Bar CSS ──────────────────────────────────────── */}
+=======
+>>>>>>> Stashed changes
       <style>{`
-        @media (max-width: 499px) {
-          .routing-bar {
-            flex-direction: column !important;
-            align-items: stretch !important;
+        @media (max-width: 640px) {
+          .conversion-grid {
+            grid-template-columns: 1fr !important;
           }
-          .routing-bar > div:nth-child(2) {
+          .arrow-container {
             transform: rotate(90deg);
-            margin-top: 0 !important;
-            align-self: center;
+            padding-top: 0 !important;
+            padding-left: 12px;
           }
         }
       `}</style>
