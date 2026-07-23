@@ -745,7 +745,7 @@ export default function Home() {
               color: "oklch(0.38 0.012 255)",
             }}
           >
-            100% client-side — zero server uploads
+            MadeByDekTUNEjapan6/25
           </span>
         </footer>
 
